@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Right Now">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" href="./icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="./icon.svg">
+    <meta name="theme-color" content="#b91c1c">
+    <title>Right Now — Community Safety & GBV Response</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            red: '#b91c1c',
+                            lightRed: '#dc2626',
+                            brightRed: '#ef4444',
+                            darkRed: '#7f1d1d',
+                            navy: '#f5f7fb',
+                            card: '#ffffff',
+                            border: '#e4e9f1',
+                            accent: '#10b981',
+                            gold: '#f59e0b'
+                        }
+                    },
+                    animation: {
+                        'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'ping-slow': 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Firebase App and Realtime Database SDKs (Compat 9.23.0) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            background-color: #1e2028;
+            color: #172b4d;
+        }
+        body.bg-brand-navy {
+            background-color: #1e2028;
+        }
+        body.pb-12 {
+            padding: 4px 0;
+        }
+        html {
+            background-color: #1e2028;
+            color-scheme: light;
+        }
+        body.text-gray-100 {
+            color: #172b4d;
+        }
+        header.bg-brand-card\/90 {
+            background: linear-gradient(110deg, #801728, #a51f31);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        header .text-gray-400 { color: #ffe3e7; }
+        header,
+        #demo-banner,
+        #app-workspace,
+        footer {
+            width: min(100%, 1440px);
+            margin-inline: auto;
+        }
+        header.top-0 {
+            top: 8px;
+        }
+        #app-workspace {
+            width: min(100%, 1440px);
+            max-width: 1440px;
+            background-color: #fbfcfe;
+        }
+        .emergency-hero {
+            display: block;
+            width: min(100%, 760px);
+            margin: 0 auto;
+            padding: 0;
+            overflow: hidden;
+            border: 0;
+            border-radius: 12px;
+            background: transparent;
+            box-shadow: 0 8px 24px rgba(23, 43, 77, 0.12);
+            cursor: pointer;
+        }
+        .emergency-hero img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+        .emergency-hero:focus-visible {
+            outline: 3px solid #f3a2ae;
+            outline-offset: 3px;
+        }
+        #demo-banner {
+            background: linear-gradient(110deg, #fff0f2, #ffffff 58%, #f5f7fb);
+            border-color: #f0d3d8;
+        }
+        #demo-banner .text-gray-300 { color: #475569; }
+        #demo-banner strong { color: #172b4d; }
+        #demo-banner button:first-of-type {
+            background-color: #ffffff;
+            color: #8b4b12;
+            border-color: #f3d5a8;
+        }
+        #demo-banner button:last-of-type {
+            background-color: #fff0f2;
+            color: #a51f31;
+            border-color: #f0c8cf;
+        }
+        main .bg-brand-card {
+            background-color: #ffffff;
+        }
+        main .text-white:not(button):not(#sos-main-btn) {
+            color: #172b4d;
+        }
+        #sos-main-btn,
+        #sos-main-btn .text-white {
+            color: #ffffff;
+        }
+        main .bg-gray-900,
+        main .bg-gray-900\/90 {
+            background-color: #f7f9fc;
+        }
+        main .bg-gray-800 {
+            background-color: #eef2f7;
+        }
+        main .text-gray-100 { color: #172b4d; }
+        main .text-gray-200 { color: #334155; }
+        main .text-gray-300 { color: #475569; }
+        main .text-gray-400,
+        main .text-gray-500 { color: #64748b; }
+        main input.text-white { color: #172b4d; }
+        main input::placeholder { color: #94a3b8; }
+        footer.bg-brand-navy {
+            background-color: #172b4d;
+            color: #ffffff;
+            border-color: #263b5a;
+        }
+        @media (min-width: 600px) {
+            header,
+            #demo-banner,
+            #app-workspace,
+            footer {
+                width: min(calc(100% - 26px), 1440px);
+            }
+        }
+        .sos-glow {
+            box-shadow: 0 0 50px rgba(185, 28, 28, 0.7), inset 0 0 25px rgba(255, 255, 255, 0.3);
+        }
+        .sos-active {
+            animation: sosPulse 1.1s infinite alternate;
+        }
+        @keyframes sosPulse {
+            0% { transform: scale(1); box-shadow: 0 0 30px rgba(239, 68, 68, 0.7); }
+            100% { transform: scale(1.06); box-shadow: 0 0 70px rgba(239, 68, 68, 1); }
+        }
+        html {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        ::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            padding: 8px 0;
+        }
+        .app-header {
+            position: relative;
+            top: auto;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+            align-items: center;
+            gap: 8px;
+            min-height: 48px;
+            padding: 5px 12px;
+            color: #ffffff;
+            background: linear-gradient(110deg, #801728, #a51f31);
+            border: 0;
+            box-shadow: 0 3px 12px rgba(23, 43, 77, 0.16);
+        }
+        .app-brand {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            min-width: 0;
+            color: #ffffff;
+            text-decoration: none;
+        }
+        .brand-mark {
+            display: grid;
+            width: 34px;
+            height: 34px;
+            flex: 0 0 34px;
+            place-items: center;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.16);
+            font-size: 20px;
+        }
+        .app-brand strong,
+        .app-brand small,
+        .header-status strong,
+        .header-status small,
+        .header-motto small { display: block; }
+        .app-brand strong { font-size: 15px; line-height: 1.1; }
+        .app-brand small { margin-top: 2px; font-size: 7px; white-space: nowrap; }
+        .header-motto {
+            color: #ffffff;
+            font: italic 15px/1.1 Georgia, "Times New Roman", serif;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .header-motto small {
+            margin-top: 3px;
+            font: 8px/1.2 Inter, sans-serif;
+        }
+        .header-status {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+            min-width: 0;
+            color: #ffffff;
+        }
+        .header-status strong { font-size: 7px; }
+        .header-status small { margin-top: 1px; font-size: 6px; }
+        .online-indicator {
+            width: 7px;
+            height: 7px;
+            flex: 0 0 7px;
+            border-radius: 50%;
+            background: #4ade80;
+        }
+        .header-icon,
+        .profile-mark {
+            display: grid;
+            width: 22px;
+            height: 22px;
+            flex: 0 0 22px;
+            place-items: center;
+            border: 0;
+            border-radius: 50%;
+            background: transparent;
+            color: #ffffff;
+            font-size: 11px;
+        }
+        .profile-mark { background: #ffffff; color: #a51f31; }
+        .app-layout {
+            display: grid;
+            grid-template-columns: 98px minmax(0, 1fr);
+            width: min(calc(100% - 26px), 1440px);
+            min-height: 0;
+            margin-inline: auto;
+            background: #fbfcfe;
+        }
+        .app-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            padding: 8px 5px;
+            background: #ffffff;
+            border-right: 1px solid #e4e9f1;
+        }
+        .side-link {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            min-height: 23px;
+            padding: 4px 6px;
+            border-radius: 7px;
+            color: #172b4d;
+            font-size: 8px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .side-link i { width: 13px; color: #172b4d; font-size: 11px; text-align: center; }
+        .side-link.selected,
+        .side-link:hover { background: #fff0f2; color: #a51f31; }
+        .side-link.selected i,
+        .side-link:hover i { color: #e51f35; }
+        .sidebar-encouragement {
+            display: grid;
+            min-height: 78px;
+            margin-top: auto;
+            padding: 9px 4px;
+            place-content: center;
+            border-radius: 9px;
+            background: linear-gradient(155deg, #fff0f3, #fff9fa);
+            color: #713043;
+            font-size: 9px;
+            line-height: 1.35;
+            text-align: center;
+        }
+        .sidebar-encouragement span { margin-top: 3px; color: #a51f31; }
+        .demo-tools { margin-top: 3px; color: #64748b; font-size: 8px; }
+        .demo-tools summary { cursor: pointer; }
+        .demo-tools button {
+            display: block;
+            width: 100%;
+            margin-top: 4px;
+            padding: 4px;
+            border: 1px solid #e4e9f1;
+            border-radius: 5px;
+            background: #ffffff;
+            color: #172b4d;
+            font-size: 7px;
+        }
+        .dashboard-workspace {
+            width: 100%;
+            max-width: none;
+            min-width: 0;
+            margin: 0;
+            padding: 8px;
+            background: #fbfcfe;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 130px;
+            align-items: start;
+            gap: 7px;
+        }
+        .dashboard-main,
+        .dashboard-aside {
+            display: flex;
+            min-width: 0;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .emergency-hero {
+            width: 100%;
+            max-width: none;
+            margin: 0;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(23, 43, 77, 0.08);
+        }
+        .dashboard-card {
+            min-width: 0;
+            padding: 6px;
+            border: 1px solid #e4e9f1;
+            border-radius: 9px;
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(23, 43, 77, 0.035);
+        }
+        .dashboard-card h2 {
+            margin: 0 0 5px;
+            color: #172b4d;
+            font-size: 9px;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+        .dashboard-card p { margin: 2px 0 0; color: #64748b; font-size: 7px; line-height: 1.35; }
+        .help-types { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+        .cat-btn {
+            display: flex;
+            min-width: 0;
+            min-height: 56px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            padding: 4px 2px;
+            border: 1px solid #e4e9f1;
+            border-radius: 7px;
+            background: #f7f9fc;
+            color: #172b4d;
+            text-align: center;
+        }
+        .cat-btn i { color: #e51f35; font-size: 15px; }
+        .cat-btn:nth-child(2) { background: #effaf4; border-color: #d4efdf; }
+        .cat-btn:nth-child(2) i { color: #16965b; }
+        .cat-btn:nth-child(3) { background: #fff7ec; border-color: #f8e7cf; }
+        .cat-btn:nth-child(3) i { color: #ed8a12; }
+        .cat-btn:nth-child(4) { background: #eff6ff; border-color: #dbeafe; }
+        .cat-btn:nth-child(4) i { color: #2779d8; }
+        .cat-btn strong { font-size: 7px; line-height: 1.2; }
+        .cat-btn small { color: #64748b; font-size: 6px; line-height: 1.2; }
+        .cat-btn.active { border-color: #e5233c; background: #fff0f2; box-shadow: inset 0 0 0 1px #e5233c; }
+        .cat-btn.active i { color: #e51f35; }
+        .more-types { margin-top: 4px; color: #64748b; font-size: 7px; }
+        .more-types summary { cursor: pointer; }
+        .more-types button { margin: 4px 4px 0 0; padding: 3px 6px; border: 1px solid #e4e9f1; border-radius: 5px; background: #f7f9fc; color: #172b4d; font-size: 7px; }
+        .card-heading { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+        .card-heading h2 { margin: 0; }
+        .heading-icon { color: #172b4d; font-size: 13px; }
+        .location-content { display: grid; grid-template-columns: minmax(0, 1fr) 96px; align-items: center; gap: 6px; }
+        .map-art {
+            position: relative;
+            height: 46px;
+            overflow: hidden;
+            border-radius: 6px;
+            background-color: #edf2f0;
+            background-image: linear-gradient(35deg,transparent 43%,#fff 44%,#fff 48%,transparent 49%),linear-gradient(95deg,transparent 40%,#fff 41%,#fff 45%,transparent 46%),linear-gradient(150deg,transparent 38%,#d3e7d7 39%,#d3e7d7 55%,transparent 56%),linear-gradient(15deg,transparent 70%,#c7e2f8 71%,#c7e2f8 76%,transparent 77%);
+            background-size: 55px 48px, 70px 52px, 100% 100%, 100% 100%;
+        }
+        .map-pin { position: absolute; top: 27%; left: 49%; color: #2779d8; font-size: 14px; filter: drop-shadow(0 1px 2px #5555); }
+        .location-actions { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .primary-button,
+        .outline-button,
+        .text-button { cursor: pointer; font-family: inherit; }
+        .primary-button { padding: 4px 6px; border: 0; border-radius: 999px; background: #b91c1c; color: #ffffff; font-size: 7px; font-weight: 700; white-space: nowrap; }
+        .location-status { max-width: 100%; overflow: hidden; color: #64748b; font-size: 6px; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+        .location-status::before { content: "● "; color: #16965b; }
+        .text-button { padding: 2px; border: 0; background: transparent; color: #2779d8; font-size: 7px; }
+        .contacts-heading { margin-bottom: 5px; }
+        .contacts-heading > div { min-width: 0; }
+        .outline-button { margin-left: auto; padding: 4px 7px; border: 1px solid #e5233c; border-radius: 999px; background: #ffffff; color: #a51f31; font-size: 7px; font-weight: 700; white-space: nowrap; }
+        .contacts-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+        .contacts-list > div { min-width: 0; padding: 4px !important; border-radius: 6px !important; }
+        .contacts-list .text-white { color: #172b4d; }
+        .contacts-list .text-gray-400 { color: #64748b; }
+        .contact-form { display: grid; grid-template-columns: 1fr 1fr auto; gap: 4px; margin-top: 6px; }
+        .contact-form[hidden] { display: none; }
+        .contact-form input { min-width: 0; padding: 5px; border: 1px solid #e4e9f1; border-radius: 6px; color: #172b4d; font-size: 8px; }
+        .number-row { display: grid; grid-template-columns: 20px minmax(0, 1fr) 12px; align-items: center; gap: 5px; padding: 2px 0; border-bottom: 1px solid #edf0f5; color: #172b4d; text-decoration: none; }
+        .number-row:last-child { border-bottom: 0; }
+        .number-icon { display: grid; width: 19px; height: 19px; place-items: center; border-radius: 50%; color: #ffffff; font-size: 8px; }
+        .number-icon.red { background: #ee4260; }
+        .number-icon.blue { background: #2d83e7; }
+        .number-icon.purple { background: #9635b7; }
+        .number-icon.green { background: #169d60; }
+        .number-row strong,
+        .number-row small { display: block; }
+        .number-row strong { font-size: 8px; }
+        .number-row small { margin-top: 1px; color: #64748b; font-size: 6px; }
+        .call-icon { color: #172b4d; font-size: 9px; }
+        .quick-actions-panel h2 i { color: #172b4d; }
+        .quick-action { display: flex; width: 100%; align-items: center; gap: 5px; margin-top: 2px; padding: 3px 5px; border: 1px solid #e4e9f1; border-radius: 999px; background: #ffffff; color: #172b4d; font-size: 6px; text-align: left; }
+        .quick-action i { width: 11px; text-align: center; }
+        .red-text { color: #e51f35; }
+        .blue-text { color: #2779d8; }
+        .green-text { color: #16965b; }
+        .activity-list { display: grid; gap: 4px; }
+        .activity-list > div { padding: 3px !important; border-radius: 6px !important; }
+        .activity-list .text-white { color: #172b4d; }
+        .activity-list .text-gray-400 { color: #64748b; }
+        .activity-list .text-\[10px\] { font-size: 6px; }
+        .activity-list .text-xs { font-size: 7px; }
+        .activity-list .w-8 { width: 20px; height: 20px; }
+        .activity-panel h2 { margin-bottom: 4px; }
+        .clear-activity { display: block; margin: 3px 0 0 auto; }
+        .safety-panel { background: #edf6ff; border-color: #d9eaff; }
+        .safety-panel h2 { color: #172b4d; }
+        .safety-panel h2 i { color: #2779d8; margin-right: 3px; }
+        .safety-panel p { color: #47617e; }
+        .safety-panel h2 { margin-bottom: 3px; font-size: 8px; }
+        .safety-panel p { font-size: 6px; line-height: 1.2; }
+        .active-sos-banner:not(.hidden) { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; padding: 7px; border-radius: 8px; background: #a51f31; color: #ffffff; font-size: 8px; }
+        .active-sos-banner strong,
+        .active-sos-banner small { display: block; }
+        .active-sos-banner button { padding: 4px 7px; border: 1px solid #ffffff70; border-radius: 6px; background: #801728; color: #ffffff; font-size: 7px; }
+        .active-sos-banner small { margin-top: 2px; color: #ffe3e7; font-size: 7px; }
+        footer.bg-brand-navy { width: min(calc(100% - 26px), 1440px); padding: 4px 10px; font-size: 7px; }
+        footer .max-w-5xl { max-width: none; flex-direction: row; gap: 5px; }
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+        @media (min-width: 901px) {
+            .app-layout { grid-template-columns: 190px minmax(0, 1fr); }
+            .dashboard-workspace { padding: 16px; }
+            .dashboard-grid { grid-template-columns: minmax(0, 1fr) 260px; gap: 14px; }
+            .dashboard-main, .dashboard-aside { gap: 12px; }
+            .dashboard-card { padding: 13px; border-radius: 13px; }
+            .dashboard-card h2 { font-size: 14px; }
+            .dashboard-card p { font-size: 10px; }
+            .emergency-hero { border-radius: 13px; }
+            .help-types { gap: 8px; }
+            .cat-btn { min-height: 88px; gap: 5px; }
+            .cat-btn i { font-size: 22px; }
+            .cat-btn strong { font-size: 11px; }
+            .cat-btn small { font-size: 9px; }
+            .location-content { grid-template-columns: minmax(0,1fr) 135px; gap: 10px; }
+            .map-art { height: 85px; }
+            .location-actions { gap: 6px; }
+            .primary-button, .outline-button { padding: 7px 10px; font-size: 10px; }
+            .location-status, .text-button { font-size: 9px; }
+            .number-row { grid-template-columns: 30px minmax(0,1fr) 16px; padding: 7px 0; }
+            .number-icon { width: 27px; height: 27px; font-size: 11px; }
+            .number-row strong { font-size: 11px; }
+            .number-row small { font-size: 8px; }
+            .quick-action { padding: 7px 9px; font-size: 9px; }
+            .quick-action i { width: 15px; }
+            .app-brand strong { font-size: 21px; }
+            .app-brand small { font-size: 9px; }
+            .brand-mark { width: 42px; height: 42px; flex-basis: 42px; font-size: 24px; }
+            .header-motto { font-size: 18px; }
+            .header-motto small { font-size: 11px; }
+            .header-status strong { font-size: 9px; }
+            .header-status small { font-size: 7px; }
+            .side-link { min-height: 32px; padding: 7px 9px; gap: 10px; font-size: 11px; }
+            .side-link i { width: 17px; font-size: 15px; }
+        }
+        @media (max-width: 600px) {
+            body { padding: 0; }
+            .app-header { width: 100%; min-height: 46px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; padding-inline: 8px; }
+            .app-layout { width: 100%; grid-template-columns: 82px minmax(0, 1fr); }
+            .app-sidebar { gap: 2px; padding: 6px 4px; }
+            .side-link { gap: 5px; padding: 4px; font-size: 7px; }
+            .side-link i { width: 12px; font-size: 10px; }
+            .sidebar-encouragement { min-height: 60px; font-size: 8px; }
+            .dashboard-workspace { padding: 6px; }
+            .dashboard-grid { grid-template-columns: minmax(0, 1fr) 116px; gap: 5px; }
+            .dashboard-main, .dashboard-aside { gap: 5px; }
+            .dashboard-card { padding: 6px; }
+            .dashboard-card h2 { font-size: 8px; }
+            .dashboard-card p { font-size: 6px; }
+            .location-content { grid-template-columns: minmax(0,1fr) 75px; gap: 4px; }
+            .map-art { height: 52px; }
+            .number-row { grid-template-columns: 16px minmax(0,1fr) 9px; gap: 3px; }
+            .number-icon { width: 15px; height: 15px; font-size: 6px; }
+            .number-row strong { font-size: 7px; }
+            .number-row small { font-size: 5px; }
+            .call-icon { font-size: 7px; }
+            .quick-action { gap: 3px; padding: 4px; font-size: 6px; }
+            .quick-action i { width: 9px; }
+            .activity-list > div { padding: 3px !important; }
+            .contacts-list { gap: 2px; }
+            .contacts-list > div { padding: 3px !important; }
+            footer.bg-brand-navy { width: 100%; }
+        }
+        @media (max-width: 420px) {
+            .header-motto { display: none; }
+            .app-header { grid-template-columns: minmax(0, 1fr) auto; }
+            .app-layout { display: flex; flex-direction: column; }
+            .app-sidebar { order: 2; flex-direction: row; overflow-x: auto; border-top: 1px solid #e4e9f1; border-right: 0; }
+            .side-link { flex: 0 0 auto; gap: 4px; padding: 5px; white-space: nowrap; }
+            .sidebar-encouragement, .demo-tools { display: none; }
+            .dashboard-grid { grid-template-columns: minmax(0, 1fr); }
+            .dashboard-aside { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); align-items: start; }
+            .safety-panel { grid-column: 1 / -1; }
+            .dashboard-card h2 { font-size: 10px; }
+            .dashboard-card p { font-size: 8px; }
+            .number-row strong { font-size: 8px; }
+            .number-row small { font-size: 6px; }
+            .quick-action { font-size: 7px; }
+            .contact-form { grid-template-columns: 1fr; }
+            footer .max-w-5xl { flex-direction: column; }
+        }
+
+        .hero-fallback { min-height: 170px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:24px; background:linear-gradient(145deg,#991b1b,#dc2626); color:#fff; text-align:center; }
+        .hero-fallback strong { font-size:clamp(20px,5vw,30px); }
+        .hero-fallback span:last-child { font-size:14px; }
+        .hero-fallback-icon { font-size:40px; }
+        /* Mobile-first accessibility and touch improvements */
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+        button, a, input, summary { touch-action: manipulation; }
+        button, .side-link, .number-row, .quick-action { min-height: 44px; }
+        input { min-height: 44px; font-size: 16px !important; }
+        .emergency-hero img { object-fit: contain; }
+        @media (max-width: 600px) {
+            body, body.bg-brand-navy { padding: 0 0 calc(76px + env(safe-area-inset-bottom)) !important; min-height: 100dvh; overflow-x: hidden; }
+            .app-header { position: sticky; top: 0; z-index: 40; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; width: 100%; min-height: 64px; padding: 8px 12px; padding-top: max(8px, env(safe-area-inset-top)); border-radius: 0; }
+            .app-brand { min-width: 0; gap: 8px; }
+            .app-brand strong { font-size: 17px; line-height: 1.2; }
+            .app-brand small { display: block; max-width: 190px; font-size: 10px; line-height: 1.25; }
+            .brand-mark { width: 38px; height: 38px; flex-basis: 38px; font-size: 19px; }
+            .header-status { gap: 6px; }
+            .header-status > span:nth-child(2) small, .profile-mark, .header-motto { display: none; }
+            .header-status strong { font-size: 10px; }
+            .header-icon { width: 40px; height: 40px; }
+            .app-layout { display: flex; flex-direction: column; width: 100%; min-width: 0; gap: 0; }
+            .app-sidebar { position: fixed; z-index: 50; left: 0; right: 0; bottom: 0; order: 2; display: flex; flex-direction: row; justify-content: flex-start; gap: 4px; width: 100%; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); overflow-x: auto; overflow-y: hidden; background: #fff; border-top: 1px solid #dbe2ed; border-right: 0; box-shadow: 0 -4px 18px rgba(15,23,42,.10); scrollbar-width: none; }
+            .app-sidebar::-webkit-scrollbar { display: none; }
+            .side-link { display: flex; flex: 0 0 auto; flex-direction: column; justify-content: center; gap: 3px; min-width: 64px; min-height: 52px; padding: 5px 8px; border-radius: 10px; font-size: 10px; line-height: 1.1; white-space: nowrap; }
+            .side-link i { width: auto; font-size: 17px; }
+            .sidebar-encouragement, .demo-tools { display: none !important; }
+            #app-workspace, .dashboard-workspace { width: 100%; max-width: none; min-width: 0; padding: 10px; border-radius: 0; }
+            .dashboard-grid { display: grid; grid-template-columns: minmax(0,1fr); gap: 12px; }
+            .dashboard-main, .dashboard-aside { display: grid; grid-template-columns: minmax(0,1fr); gap: 12px; min-width: 0; }
+            .dashboard-card { min-width: 0; padding: 14px; border-radius: 14px; }
+            .dashboard-card h2 { margin-bottom: 8px; font-size: 16px; line-height: 1.35; }
+            .dashboard-card p { font-size: 13px; line-height: 1.5; }
+            .emergency-hero { width: 100%; max-width: none; border-radius: 14px; }
+            .emergency-hero img { width: 100%; max-height: 36dvh; object-fit: contain; }
+            .help-types { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+            .cat-btn { display: flex; min-width: 0; min-height: 92px; flex-direction: column; align-items: flex-start; justify-content: center; gap: 6px; padding: 12px; border-radius: 12px; }
+            .cat-btn i { font-size: 22px; }
+            .cat-btn strong { font-size: 13px; line-height: 1.25; }
+            .cat-btn small { font-size: 11px; line-height: 1.35; }
+            .location-content { display: grid; grid-template-columns: minmax(0,1fr); gap: 12px; }
+            .map-art { min-height: 120px; height: auto; border-radius: 12px; }
+            .location-actions { display: grid; grid-template-columns: minmax(0,1fr); gap: 8px; }
+            .primary-button, .outline-button, .text-button, .active-sos-banner button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 12px; font-size: 14px; border-radius: 10px; }
+            .location-status { font-size: 12px; line-height: 1.4; }
+            .contacts-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+            .contacts-heading > div { flex: 1 1 150px; }
+            .contact-form { grid-template-columns: minmax(0,1fr); gap: 8px; }
+            .contact-form input { width: 100%; padding: 10px 12px; font-size: 16px !important; }
+            .contacts-list { display: grid; gap: 8px; }
+            .contacts-list > div { padding: 10px !important; border-radius: 10px !important; }
+            .number-row { grid-template-columns: 36px minmax(0,1fr) 20px; gap: 8px; min-height: 58px; padding: 8px 0; }
+            .number-icon { width: 34px; height: 34px; font-size: 14px; }
+            .number-row strong { font-size: 14px; }
+            .number-row small { font-size: 11px; line-height: 1.35; }
+            .call-icon { font-size: 15px; }
+            .quick-action { gap: 10px; min-height: 46px; margin-top: 6px; padding: 10px 12px; font-size: 13px; }
+            .quick-action i { width: 20px; font-size: 15px; }
+            .activity-list { gap: 8px; }
+            .activity-list > div { padding: 10px !important; }
+            .activity-list .text-\[10px\] { font-size: 11px; }
+            .activity-list .text-xs { font-size: 12px; }
+            .activity-list .w-8 { width: 34px; height: 34px; }
+            .safety-panel h2 { font-size: 15px; }
+            .safety-panel p { font-size: 12px; line-height: 1.5; }
+            .active-sos-banner:not(.hidden) { align-items: flex-start; flex-direction: column; padding: 12px; font-size: 13px; }
+            .active-sos-banner small { font-size: 12px; line-height: 1.4; }
+            footer.bg-brand-navy { width: 100%; padding: 14px 12px; font-size: 11px; line-height: 1.5; }
+            footer .max-w-5xl { flex-direction: column; gap: 8px; }
+            section, [id] { scroll-margin-top: 76px; }
+            .modal > div, .modal-content { width: min(100%, 440px); max-height: 85dvh; overflow-y: auto; }
+        }
+        @media (max-width: 360px) {
+            .app-brand small { max-width: 145px; font-size: 9px; }
+            .side-link { min-width: 58px; padding-inline: 5px; font-size: 9px; }
+            #app-workspace, .dashboard-workspace { padding: 7px; }
+            .dashboard-card { padding: 11px; }
+            .cat-btn { padding: 9px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+        }
+    </style>
+</head>
+<body class="bg-brand-navy text-gray-100 min-h-screen flex flex-col justify-between select-none pb-12 md:pb-4">
+
+    <!-- Top Navigation & Status Bar -->
+    <header class="app-header">
+        <a class="app-brand" href="#home" aria-label="Right Now home">
+            <span class="brand-mark" aria-hidden="true"><i class="fa-solid fa-heart-pulse"></i></span>
+            <span><strong>Right Now</strong><small>Community Safety & GBV Response</small></span>
+        </a>
+        <div class="header-motto">You are not alone.<small>Let's take the next safe step.</small></div>
+        <div class="header-status">
+            <span class="online-indicator" id="sync-indicator" aria-hidden="true"></span>
+            <span><strong id="sync-text">Connecting...</strong><small>Connected to Firebase</small></span>
+            <button class="header-icon" type="button" onclick="showToast('Right Now can prepare alerts, but does not automatically contact emergency services.','fa-solid fa-heart text-red-500')" aria-label="Safety information"><i class="fa-regular fa-bell"></i></button>
+            <span class="profile-mark" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
+        </div>
+        <div id="sync-badge" class="sr-only" aria-live="polite"></div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="app-layout">
+      <nav class="app-sidebar" aria-label="Main navigation">
+        <a class="side-link selected" href="#home"><i class="fa-solid fa-house"></i><span>Home</span></a>
+        <a class="side-link" href="#sosPanel"><i class="fa-solid fa-bell"></i><span>SOS Alert</span></a>
+        <a class="side-link" href="#category-panel"><i class="fa-solid fa-shield-halved"></i><span>Personal Safety</span></a>
+        <a class="side-link" href="#locationPanel"><i class="fa-solid fa-location-dot"></i><span>Location</span></a>
+        <a class="side-link" href="#contactsPanel"><i class="fa-solid fa-user-group"></i><span>Trusted Contacts</span></a>
+        <a class="side-link" href="#activityPanel"><i class="fa-solid fa-message"></i><span>Messages</span></a>
+        <a class="side-link" href="#helplines"><i class="fa-solid fa-book-open"></i><span>Resources</span></a>
+        <a class="side-link" href="#settingsPanel"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+        <div class="sidebar-encouragement">
+            <strong>Speak up.<br>Get support.<br>Stay safe.</strong>
+            <span aria-hidden="true">♥</span>
+        </div>
+        <details class="demo-tools">
+            <summary>Demo tools</summary>
+            <button type="button" onclick="injectJudgeTestContact()"><i class="fa-solid fa-user-plus"></i> Preset contacts</button>
+            <button type="button" onclick="triggerDemoBroadcast()"><i class="fa-solid fa-tower-broadcast"></i> Test alert</button>
+        </details>
+      </nav>
+
+      <main id="app-workspace" class="dashboard-workspace">
+        <div id="active-sos-banner" class="active-sos-banner hidden">
+            <div><strong id="active-sos-title">BROADCASTING EMERGENCY ALERT</strong><small id="active-sos-time">Dispatched at --:--:--</small><small id="active-sos-gps">GPS: Acquiring coordinates...</small></div>
+            <button type="button" onclick="cancelActiveSOS()">Cancel SOS</button>
+        </div>
+        <div class="dashboard-grid" id="home">
+          <div class="dashboard-main">
+            <button class="emergency-hero" id="sosPanel" type="button" onclick="triggerSOS('MAIN')" aria-label="You are not alone. Send an SOS alert">
+                <img src="./assets/emergency-hero.png" alt="You are not alone. Send an SOS alert" onerror="this.style.display='none'; this.parentElement.classList.add('hero-fallback'); this.parentElement.innerHTML='<span class=\'hero-fallback-icon\'>♥</span><strong>You are not alone.</strong><span>Tap to send an SOS alert</span>'">
+            </button>
+
+            <section class="dashboard-card help-panel" id="category-panel">
+                <h2>What kind of help do you need?</h2>
+                <div class="help-types" id="category-selector" role="group" aria-label="Emergency type">
+                    <button type="button" onclick="selectCategory('GBV / SOS')" data-type="GBV / SOS" class="cat-btn active" aria-pressed="true"><i class="fa-solid fa-ribbon"></i><strong>GBV / SOS</strong><small>You are not alone.</small></button>
+                    <button type="button" onclick="selectCategory('Medical')" data-type="Medical" class="cat-btn" aria-pressed="false"><i class="fa-solid fa-notes-medical"></i><strong>Medical</strong><small>For medical emergencies.</small></button>
+                    <button type="button" onclick="selectCategory('Fire')" data-type="Fire" class="cat-btn" aria-pressed="false"><i class="fa-solid fa-fire"></i><strong>Fire</strong><small>For fire and related incidents.</small></button>
+                    <button type="button" onclick="selectCategory('Crime')" data-type="Crime" class="cat-btn" aria-pressed="false"><i class="fa-solid fa-car-burst"></i><strong>Crime</strong><small>For crime and safety threats.</small></button>
+                </div>
+                <details class="more-types">
+                    <summary>More emergency types</summary>
+                    <button type="button" onclick="selectCategory('Accident')" data-type="Accident" class="cat-btn" aria-pressed="false">Accident</button>
+                    <button type="button" onclick="selectCategory('Silent Alert')" data-type="Silent Alert" class="cat-btn" aria-pressed="false">Silent alert</button>
+                </details>
+                <button id="sos-main-btn" class="hidden" type="button" onclick="triggerSOS('MAIN')">Broadcast SOS</button>
+            </section>
+
+            <section class="dashboard-card location-panel" id="locationPanel">
+                <div class="card-heading"><span class="heading-icon"><i class="fa-solid fa-location-dot"></i></span><div><h2>Your Location</h2><p>Share your location to help responders find you faster.</p></div></div>
+                <div class="location-content">
+                    <div class="map-art" aria-hidden="true"><span class="map-pin"><i class="fa-solid fa-location-dot"></i></span></div>
+                    <div class="location-actions">
+                        <button type="button" class="primary-button" onclick="captureLocation()"><i class="fa-solid fa-location-crosshairs"></i> Get My Location</button>
+                        <span id="gps-status" class="location-status">Location not shared</span>
+                        <button type="button" class="text-button" onclick="openGoogleMaps()">Open Google Maps</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="dashboard-card contacts-panel" id="contactsPanel">
+                <div class="card-heading contacts-heading"><span class="heading-icon"><i class="fa-solid fa-user-group"></i></span><div><h2>Trusted Contacts</h2><p>Add people you trust. They can receive your alerts.</p></div><button type="button" class="outline-button" onclick="toggleContactForm()"><i class="fa-solid fa-plus"></i> Add Contact</button></div>
+                <div id="contacts-list" class="contacts-list"></div>
+                <span id="contact-count-badge" class="sr-only">0 Contacts</span>
+                <div id="contact-form" class="contact-form" hidden>
+                    <input type="text" id="contact-name" maxlength="80" placeholder="Contact name" autocomplete="name" aria-label="Contact name">
+                    <input type="tel" id="contact-phone" maxlength="30" placeholder="Phone number" autocomplete="tel" aria-label="Phone number">
+                    <button type="button" class="primary-button" onclick="addTrustedContact()">Save Contact</button>
+                </div>
+            </section>
+          </div>
+
+          <aside class="dashboard-aside">
+            <section class="dashboard-card emergency-numbers" id="helplines">
+                <h2><i class="fa-solid fa-phone"></i> Quick Emergency Numbers</h2>
+                <a class="number-row" href="tel:10177"><span class="number-icon red"><i class="fa-solid fa-truck-medical"></i></span><span><strong>10177</strong><small>Ambulance</small></span><i class="fa-solid fa-phone call-icon"></i></a>
+                <a class="number-row" href="tel:10111"><span class="number-icon blue"><i class="fa-solid fa-shield-halved"></i></span><span><strong>10111</strong><small>Police / Fire</small></span><i class="fa-solid fa-phone call-icon"></i></a>
+                <a class="number-row" href="tel:112"><span class="number-icon purple"><i class="fa-solid fa-phone-volume"></i></span><span><strong>112</strong><small>Cellphone Emergency</small></span><i class="fa-solid fa-phone call-icon"></i></a>
+                <a class="number-row" href="tel:0800428428"><span class="number-icon green"><i class="fa-solid fa-heart"></i></span><span><strong>0800 428 428</strong><small>GBV Command Centre</small></span><i class="fa-solid fa-phone call-icon"></i></a>
+            </section>
+
+            <section class="dashboard-card quick-actions-panel">
+                <h2><i class="fa-solid fa-bolt"></i> Quick Actions</h2>
+                <button class="quick-action" type="button" onclick="captureLocation()"><i class="fa-solid fa-location-dot red-text"></i> Share My Location</button>
+                <button class="quick-action" type="button" onclick="sendSMSAlert()"><i class="fa-solid fa-comment-dots blue-text"></i> Send Emergency Message</button>
+                <button class="quick-action" type="button" onclick="showEmergencyPlan()"><i class="fa-solid fa-file-lines red-text"></i> View Emergency Plan</button>
+                <button class="quick-action" type="button" onclick="openGoogleMaps()"><i class="fa-solid fa-map green-text"></i> Open Google Maps</button>
+            </section>
+
+            <section class="dashboard-card activity-panel" id="activityPanel">
+                <h2>Recent Activity</h2>
+                <div id="live-events-feed" class="activity-list"><div class="empty-activity">No alerts yet.</div></div>
+                <button type="button" class="text-button clear-activity" onclick="clearLocalFeed()">Clear local history</button>
+            </section>
+
+            <section class="dashboard-card safety-panel" id="settingsPanel">
+                <h2><i class="fa-solid fa-shield-heart"></i> Your safety matters.</h2>
+                <p>This app is here to support you. Share your location only if it feels safe.</p>
+            </section>
+          </aside>
+        </div>
+      </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-brand-navy border-t border-brand-border py-4 px-4 text-center text-xs text-gray-500">
+        <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div>
+                Right Now — Community Safety & GBV Emergency Response • FNB App of the Year 2026
+            </div>
+            <div class="text-gray-400 font-mono text-[11px]">
+                Firebase DB ID: <span class="text-amber-400">right-now-emergency-help</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL: Alert Confirmation & Payload Inspector -->
+    <div id="event-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-brand-card rounded-2xl border border-gray-700 w-full max-w-lg overflow-hidden shadow-2xl">
+            <div class="bg-gray-800 px-5 py-4 border-b border-gray-700 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-brand-red/20 text-brand-brightRed flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-white text-base">Emergency Payload Created</h3>
+                        <p class="text-[11px] text-gray-400">Realtime payload synced with Firebase database</p>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4">
+                <p id="modal-summary-text" class="text-xs text-gray-300 leading-relaxed">
+                    Emergency alert created successfully.
+                </p>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Firebase RTDB Object Payload</label>
+                    <pre id="modal-json-payload" class="bg-gray-900 border border-gray-800 rounded-xl p-3 text-[11px] font-mono text-emerald-400 overflow-x-auto whitespace-pre-wrap"></pre>
+                </div>
+
+                <div class="flex items-center gap-2 pt-2">
+                    <button onclick="copyPayloadID()" id="copy-btn" class="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs py-2.5 rounded-xl border border-gray-700 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-copy"></i>
+                        <span>Copy Event ID</span>
+                    </button>
+                    <button onclick="closeModal()" class="flex-1 bg-brand-red hover:bg-brand-lightRed text-white font-bold text-xs py-2.5 rounded-xl transition">
+                        Dismiss
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white px-4 py-2.5 rounded-xl border border-gray-700 shadow-2xl flex items-center gap-2.5 text-xs font-semibold opacity-0 pointer-events-none transition-all duration-300">
+        <i id="toast-icon" class="fa-solid fa-circle-info text-amber-400"></i>
+        <span id="toast-message">Notification message</span>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // --- 1. Firebase Pre-Configuration ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpYdvdL3y5URZZXWgrBYRwVWAjWXuJ630",
+            authDomain: "right-now-emergency-help.firebaseapp.com",
+            databaseURL: "https://right-now-emergency-help-default-rtdb.firebaseio.com",
+            projectId: "right-now-emergency-help",
+            storageBucket: "right-now-emergency-help.firebasestorage.app",
+            messagingSenderId: "823961177592",
+            appId: "1:823961177592:web:e55d49196a9a79d348da0d"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const eventsRef = db.ref('emergency_events');
+
+        // --- 2. State Management ---
+        const state = {
+            selectedCategory: 'GBV / SOS',
+            lat: null,
+            lng: null,
+            activeSOS: null,
+            events: [],
+            contacts: JSON.parse(localStorage.getItem('rn_contacts') || '[]')
+        };
+
+        // --- 3. App Initialization ---
+        window.onload = function() {
+            initFirebaseListeners();
+            renderContacts();
+            renderEventsFeed();
+            captureLocation(true); // silent initial check
+        };
+
+        // --- 4. Firebase Realtime Database Listener ---
+        function initFirebaseListeners() {
+            const badge = document.getElementById('sync-badge');
+            const indicator = document.getElementById('sync-indicator');
+            const text = document.getElementById('sync-text');
+
+            // Monitor connection state
+            db.ref('.info/connected').on('value', (snap) => {
+                if (snap.val() === true) {
+                    indicator.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
+                    text.innerText = "Firebase Live";
+                    text.className = "text-emerald-300 text-[11px] font-semibold";
+                } else {
+                    indicator.className = "w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse";
+                    text.innerText = "Offline Mode";
+                    text.className = "text-amber-300 text-[11px] font-semibold";
+                }
+            });
+
+            // Listen for child_added on emergency_events
+            eventsRef.limitToLast(20).on('child_added', (snapshot) => {
+                const eventVal = snapshot.val();
+                if (eventVal && eventVal.id) {
+                    // Check if event already exists
+                    if (!state.events.some(e => e.id === eventVal.id)) {
+                        state.events.unshift(eventVal);
+                        renderEventsFeed();
+                        showToast(`New Live Alert: ${eventVal.type}`, 'fa-solid fa-bell text-brand-brightRed');
+                    }
+                }
+            });
+        }
+
+        // --- 5. Emergency SOS Trigger & Realtime Push ---
+        function triggerSOS(source = 'MAIN') {
+            const eventId = 'RN-' + Date.now().toString(36).toUpperCase();
+            const timestamp = new Date().toISOString();
+
+            const eventData = {
+                id: eventId,
+                type: state.selectedCategory,
+                time: timestamp,
+                lat: state.lat,
+                lng: state.lng,
+                status: 'ACTIVE',
+                judgeDemoUser: 'judge@appoftheyear.co.za'
+            };
+
+            // Push object payload directly to Firebase RTDB
+            eventsRef.child(eventId).set(eventData)
+                .then(() => {
+                    showToast('SOS Broadcasted to Firebase Database!', 'fa-solid fa-cloud-arrow-up text-emerald-400');
+                })
+                .catch((err) => {
+                    console.error('Firebase sync error:', err);
+                    showToast('Saved locally (Offline)', 'fa-solid fa-database text-amber-400');
+                });
+
+            state.activeSOS = eventData;
+            showActiveBanner(eventData);
+            openModal(eventData);
+        }
+
+        function triggerDemoBroadcast() {
+            state.selectedCategory = 'GBV / SOS';
+            triggerSOS('DEMO');
+        }
+
+        function cancelActiveSOS() {
+            if (state.activeSOS) {
+                eventsRef.child(state.activeSOS.id).update({ status: 'RESOLVED_BY_USER' });
+            }
+            state.activeSOS = null;
+            document.getElementById('active-sos-banner').classList.add('hidden');
+            showToast('SOS Emergency Alert Resolution Sent', 'fa-solid fa-circle-check text-emerald-400');
+        }
+
+        function showActiveBanner(e) {
+            const banner = document.getElementById('active-sos-banner');
+            banner.classList.remove('hidden');
+            document.getElementById('active-sos-title').innerText = `${e.type.toUpperCase()} EMERGENCY BROADCAST`;
+            document.getElementById('active-sos-time').innerText = `Dispatched at ${new Date(e.time).toLocaleTimeString()}`;
+            document.getElementById('active-sos-gps').innerText = e.lat ? `GPS: ${e.lat.toFixed(5)}, ${e.lng.toFixed(5)}` : 'GPS: Location unavailable';
+        }
+
+        // --- 6. Geolocation Functionality ---
+        function captureLocation(silent = false) {
+            const statusEl = document.getElementById('gps-status');
+            if (!navigator.geolocation) {
+                if (!silent) showToast('Geolocation is not supported by your browser', 'fa-solid fa-triangle-exclamation');
+                return;
+            }
+
+            if (!silent) statusEl.innerText = 'Acquiring GPS...';
+
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    state.lat = pos.coords.latitude;
+                    state.lng = pos.coords.longitude;
+                    statusEl.innerText = `GPS Fixed: ${state.lat.toFixed(4)}, ${state.lng.toFixed(4)}`;
+                    statusEl.className = 'text-emerald-400 text-[11px] font-mono font-semibold';
+                    if (!silent) showToast('High-Precision GPS Location Secured', 'fa-solid fa-location-dot text-emerald-400');
+                },
+                (err) => {
+                    statusEl.innerText = 'GPS Permission Denied';
+                    statusEl.className = 'text-amber-400 text-[11px] font-mono';
+                    if (!silent) showToast('Unable to capture precise GPS', 'fa-solid fa-location-crosshairs text-amber-400');
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        }
+
+        // --- 7. Emergency Categories Selector ---
+        function selectCategory(category) {
+            state.selectedCategory = category;
+            const buttons = document.querySelectorAll('.cat-btn');
+            buttons.forEach(btn => {
+                const selected = btn.dataset.type === category;
+                btn.setAttribute('aria-pressed', String(selected));
+                if (selected) {
+                    btn.className = 'cat-btn active bg-brand-red text-white border-brand-brightRed p-2.5 rounded-xl border font-bold text-xs flex flex-col items-center gap-1 transition shadow-lg';
+                } else {
+                    btn.className = 'cat-btn bg-gray-900 text-gray-300 border-gray-800 p-2.5 rounded-xl border font-semibold text-xs flex flex-col items-center gap-1 hover:border-gray-600 transition';
+                }
+            });
+            showToast(`Selected Category: ${category}`, 'fa-solid fa-list text-blue-400');
+        }
+
+        // --- 8. Render Realtime Events Feed ---
+        function renderEventsFeed() {
+            const feed = document.getElementById('live-events-feed');
+            if (state.events.length === 0) {
+                feed.innerHTML = `
+                    <div class="text-center py-8 text-gray-500 text-xs">
+                        No emergency events logged yet.
+                    </div>
+                `;
+                return;
+            }
+
+            feed.innerHTML = state.events.slice(0, 3).map(e => {
+                const isResolved = e.status === 'RESOLVED_BY_USER';
+                const dateStr = new Date(e.time).toLocaleTimeString();
+                const coordsStr = e.lat ? `${e.lat.toFixed(4)}, ${e.lng.toFixed(4)}` : 'GPS N/A';
+
+                return `
+                    <div class="bg-gray-900/90 border border-gray-800 p-3 rounded-xl flex items-center justify-between gap-2 text-xs">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg ${isResolved ? 'bg-gray-800 text-gray-400' : 'bg-brand-red/20 text-brand-brightRed'} flex items-center justify-center font-bold shrink-0">
+                                <i class="fa-solid ${getCategoryIcon(e.type)}"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-white flex items-center gap-1.5">
+                                    <span>${e.type}</span>
+                                    <span class="text-[10px] font-mono text-gray-400">#${e.id}</span>
+                                </div>
+                                <div class="text-[10px] text-gray-400 font-mono">
+                                    ${dateStr} • ${coordsStr}
+                                </div>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${isResolved ? 'bg-gray-800 text-gray-400 border-gray-700' : 'bg-red-950 text-red-400 border-red-800 animate-pulse'}">
+                            ${isResolved ? 'RESOLVED' : 'ACTIVE'}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getCategoryIcon(type) {
+            switch(type) {
+                case 'GBV / SOS': return 'fa-ribbon';
+                case 'Medical': return 'fa-notes-medical';
+                case 'Fire': return 'fa-fire';
+                case 'Crime': return 'fa-handcuffs';
+                case 'Accident': return 'fa-car-burst';
+                case 'Silent Alert': return 'fa-volume-xmark';
+                default: return 'fa-triangle-exclamation';
+            }
+        }
+
+        function clearLocalFeed() {
+            state.events = [];
+            renderEventsFeed();
+            showToast('Local Feed Log Cleared', 'fa-solid fa-trash-can text-gray-400');
+        }
+
+        // --- 9. Trusted Contacts Management ---
+        function renderContacts() {
+            const list = document.getElementById('contacts-list');
+            const badge = document.getElementById('contact-count-badge');
+            badge.innerText = `${state.contacts.length} Contacts`;
+
+            if (state.contacts.length === 0) {
+                list.innerHTML = `<div class="text-center py-6 text-gray-500 text-xs">No guardians added yet.</div>`;
+                return;
+            }
+
+            list.innerHTML = state.contacts.map((c, index) => `
+                <div class="bg-gray-900 border border-gray-800 p-2.5 rounded-xl flex items-center justify-between gap-2 text-xs">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-user-shield text-xs"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-white">${c.name}</div>
+                            <div class="text-[10px] text-gray-400 font-mono">${c.phone}</div>
+                        </div>
+                    </div>
+                    <button onclick="removeContact(${index})" class="text-gray-500 hover:text-red-400 p-1">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function addTrustedContact() {
+            const nameInput = document.getElementById('contact-name');
+            const phoneInput = document.getElementById('contact-phone');
+
+            const name = nameInput.value.trim();
+            const phone = phoneInput.value.trim();
+
+            if (!name || !phone) {
+                showToast('Enter both contact name and phone number', 'fa-solid fa-triangle-exclamation text-amber-400');
+                return;
+            }
+
+            state.contacts.push({ name, phone });
+            localStorage.setItem('rn_contacts', JSON.stringify(state.contacts));
+            
+            nameInput.value = '';
+            phoneInput.value = '';
+            renderContacts();
+            showToast('Trusted Contact Saved', 'fa-solid fa-user-check text-emerald-400');
+        }
+
+        function toggleContactForm() {
+            const form = document.getElementById('contact-form');
+            form.hidden = !form.hidden;
+            if (!form.hidden) document.getElementById('contact-name').focus();
+        }
+
+        function openGoogleMaps() {
+            const url = state.lat !== null && state.lng !== null
+                ? `https://maps.google.com/?q=${state.lat},${state.lng}`
+                : 'https://maps.google.com/';
+            window.open(url, '_blank', 'noopener');
+        }
+
+        function showEmergencyPlan() {
+            showToast('If safe, move somewhere secure, contact someone you trust, and call an emergency number. Share your location only if it feels safe.', 'fa-solid fa-shield-heart text-blue-400');
+        }
+
+        function injectJudgeTestContact() {
+            state.contacts = [
+                { name: "Judge Safety Desk (FNB)", phone: "082 000 2026" },
+                { name: "SAPS Rapid Response", phone: "011 999 8888" }
+            ];
+            localStorage.setItem('rn_contacts', JSON.stringify(state.contacts));
+            renderContacts();
+            showToast('Injected FNB Hackathon Judge Contacts', 'fa-solid fa-award text-amber-400');
+        }
+
+        function removeContact(index) {
+            state.contacts.splice(index, 1);
+            localStorage.setItem('rn_contacts', JSON.stringify(state.contacts));
+            renderContacts();
+            showToast('Contact Removed', 'fa-solid fa-trash text-gray-400');
+        }
+
+        // --- 10. Web Share & SMS Action ---
+        function shareEmergencyWeb() {
+            const currentEvent = state.activeSOS || {
+                id: 'RN-' + Date.now().toString(36).toUpperCase(),
+                type: state.selectedCategory,
+                time: new Date().toISOString(),
+                lat: state.lat,
+                lng: state.lng
+            };
+
+            const shareText = `RIGHT NOW EMERGENCY ALERT!\nType: ${currentEvent.type}\nEvent ID: ${currentEvent.id}\nGPS Location: ${currentEvent.lat ? `https://maps.google.com/?q=${currentEvent.lat},${currentEvent.lng}` : 'Unavailable'}`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Right Now Emergency Broadcast',
+                    text: shareText
+                }).catch(() => {});
+            } else {
+                copyToClipboard(shareText);
+                showToast('Emergency Details Copied to Clipboard', 'fa-solid fa-copy text-blue-400');
+            }
+        }
+
+        function sendSMSAlert() {
+            if (state.contacts.length === 0) {
+                showToast('Please add at least one trusted contact first', 'fa-solid fa-triangle-exclamation text-amber-400');
+                return;
+            }
+
+            const primaryContact = state.contacts[0];
+            const currentEvent = state.activeSOS || {
+                id: 'RN-' + Date.now().toString(36).toUpperCase(),
+                type: state.selectedCategory,
+                lat: state.lat,
+                lng: state.lng
+            };
+
+            const smsBody = encodeURIComponent(`RIGHT NOW EMERGENCY: ${currentEvent.type}. ID ${currentEvent.id}. GPS: ${currentEvent.lat ? `${currentEvent.lat.toFixed(4)},${currentEvent.lng.toFixed(4)}` : 'N/A'}`);
+            window.location.href = `sms:${primaryContact.phone}?body=${smsBody}`;
+        }
+
+        // --- 11. Modal & Clipboard Logic ---
+        function openModal(eventObj) {
+            document.getElementById('event-modal').classList.remove('hidden');
+            document.getElementById('modal-summary-text').innerText = `A ${eventObj.type} alert was successfully pushed to Firebase database 'right-now-emergency-help'.`;
+            document.getElementById('modal-json-payload').innerText = JSON.stringify(eventObj, null, 2);
+        }
+
+        function closeModal() {
+            document.getElementById('event-modal').classList.add('hidden');
+        }
+
+        function copyPayloadID() {
+            if (state.activeSOS) {
+                copyToClipboard(state.activeSOS.id);
+                document.getElementById('copy-btn').innerText = 'Copied ID ✓';
+                setTimeout(() => {
+                    document.getElementById('copy-btn').innerHTML = '<i class="fa-solid fa-copy"></i><span>Copy Event ID</span>';
+                }, 2000);
+            }
+        }
+
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+        }
+
+        // --- Helper Utilities ---
+        function showToast(msg, iconClass = 'fa-solid fa-circle-info text-amber-400') {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-message');
+            const iconEl = document.getElementById('toast-icon');
+
+            msgEl.innerText = msg;
+            iconEl.className = iconClass;
+
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+        if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+            window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(err => console.warn('PWA offline setup unavailable:', err)));
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "Right Now — Community Safety & GBV Response",
+  "short_name": "Right Now",
+  "description": "Mobile-first emergency support and trusted-contact alert prototype.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f5f7fb",
+  "theme_color": "#b91c1c",
+  "categories": ["health", "lifestyle", "safety"],
+  "icons": [{"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
