@@ -1,0 +1,18 @@
+{
+  "name": "right-now-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Right Now mobile app built with Capacitor",
+  "scripts": {
+    "copy:web": "node scripts/copy-web-assets.js",
+    "cap:sync": "npm run copy:web && cap sync android",
+    "cap:open": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/core": "^8.5.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.3"
+  }
+}
