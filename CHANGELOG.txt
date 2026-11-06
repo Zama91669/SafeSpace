@@ -1,0 +1,21 @@
+SafeSpace AI Worldwide v0.8 — Global Safety & Support Experience
+
+ADDED
+- Global tools panel with country selection and emergency-number reference for 10 starter countries.
+- Nearby support search by place and optional browser geolocation using external map search.
+- Local-only Safe Check-in reminder and neutral-screen Quick Exit.
+- Limited English / isiZulu / Afrikaans translation preview for the Global tools panel.
+- Browser-local usage counters with clear function.
+- Organisation verification and AI workflow guidance linking to existing v0.7 modules.
+
+PRESERVED
+- Existing Right Now emergency interface and features.
+- Existing public directory, organisation portal, AI workflow, human review and administrator UI markup.
+
+SAFETY / LIMITATIONS
+- No survivor data, check-ins, precise location or analytics are sent to a server by the new layer.
+- External map search results are not SafeSpace-verified.
+- Check-in is not monitored and does not notify anyone.
+- Quick Exit does not erase browser history or device monitoring traces.
+- The v0.7 source folder supplied here has no backend files; live Firebase, AI and administrator operations require backend integration and testing separately.
+- Not production-ready; verify emergency references, legal/privacy, security and accessibility before launch.
